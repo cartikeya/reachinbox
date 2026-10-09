@@ -7,7 +7,11 @@ import { v4 as uuid } from 'uuid';
 import { config } from './config.js';
 import type { EmailRecord, EmailStatus, Sender, User } from './types.js';
 
-export const pool = new Pool({ connectionString: config.databaseUrl, max: 12 });
+export const pool = new Pool({
+  connectionString: config.databaseUrl,
+  max: 12,
+  ssl: { rejectUnauthorized: false },
+});
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const migrationPath = path.join(rootDir, 'migrations/001_init.sql');
