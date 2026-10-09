@@ -15,6 +15,7 @@ export const config = {
   port: int(process.env.PORT, 3000),
   nodeEnv: process.env.NODE_ENV ?? 'development',
   appOrigin: process.env.APP_ORIGIN ?? `http://localhost:${int(process.env.PORT, 3000)}`,
+  corsOrigins: list(process.env.CORS_ORIGINS),
   sessionSecret: process.env.SESSION_SECRET ?? 'development-only-change-me',
   allowDemoAuth: process.env.ALLOW_DEMO_AUTH === 'true',
   databaseUrl: process.env.DATABASE_URL ?? 'mysql://reachinbox:reachinbox@localhost:3306/reachinbox',

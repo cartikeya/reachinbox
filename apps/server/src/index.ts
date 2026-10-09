@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
+import cors from 'cors';
 import { config } from './config.js';
 import { migrate, pool, seed } from './db.js';
 import routes from './routes.js';
@@ -9,6 +10,7 @@ import { reconcileQueue, startWorker } from './queue.js';
 
 const app = express();
 app.disable('x-powered-by');
+app.use(cors({ origin: config.corsOrigins.length ? config.corsOrigins : true, credentials: true }));
 app.use(express.json({ limit: '2mb' }));
 app.use('/api', routes);
 

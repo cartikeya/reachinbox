@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 export type EmailStatus = 'scheduled' | 'sent' | 'failed';
 
 export interface User { id: string; name: string; email: string; avatarUrl?: string | null; }
@@ -5,8 +7,10 @@ export interface Sender { id: string; email: string; displayName?: string | null
 export interface Email { id: string; senderEmail: string; recipientEmail: string; subject: string; body: string; status: EmailStatus; scheduledAt: string; sentAt?: string | null; failedAt?: string | null; errorMessage?: string | null; etherealPreviewUrl?: string | null; attemptCount: number; }
 export interface Overview { scheduled: number; sent: number; failed: number; next_scheduled?: string | null; }
 
+const apiOrigin = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`/api${path}`, { credentials: 'include', headers: { 'content-type': 'application/json', ...(options?.headers ?? {}) }, ...options });
+  const response = await fetch(`${apiOrigin}/api${path}`, { credentials: 'include', headers: { 'content-type': 'application/json', ...(options?.headers ?? {}) }, ...options });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(payload.error ?? 'Request failed.');
   return payload as T;
