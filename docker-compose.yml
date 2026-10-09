@@ -1,16 +1,17 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: reachinbox-postgres
+  mysql:
+    image: mysql:8.4
+    container_name: reachinbox-mysql
     restart: unless-stopped
     environment:
-      POSTGRES_USER: reachinbox
-      POSTGRES_PASSWORD: reachinbox
-      POSTGRES_DB: reachinbox
+      MYSQL_DATABASE: reachinbox
+      MYSQL_USER: reachinbox
+      MYSQL_PASSWORD: reachinbox
+      MYSQL_ROOT_PASSWORD: root
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - reachinbox_pgdata:/var/lib/postgresql/data
+      - reachinbox_mysql_data:/var/lib/mysql
 
   redis:
     image: redis:7-alpine
@@ -35,6 +36,6 @@ services:
       - reachinbox_esdata:/usr/share/elasticsearch/data
 
 volumes:
-  reachinbox_pgdata:
+  reachinbox_mysql_data:
   reachinbox_redisdata:
   reachinbox_esdata:

@@ -1,0 +1,13 @@
+Email,CustomerID,Gender,Age,Annual Income (k$),Spending Score (1-100)
+mall-customer-001@example.com,1,Male,19,15,39
+mall-customer-002@example.com,2,Male,21,15,81
+mall-customer-003@example.com,3,Female,20,16,6
+mall-customer-004@example.com,4,Female,23,16,77
+mall-customer-005@example.com,5,Female,31,17,40
+mall-customer-006@example.com,6,Female,22,17,76
+mall-customer-007@example.com,7,Female,35,18,6
+mall-customer-008@example.com,8,Female,23,18,94
+mall-customer-009@example.com,9,Male,64,19,3
+mall-customer-010@example.com,10,Female,30,19,72
+mall-customer-011@example.com,11,Male,67,19,14
+mall-customer-012@example.com,12,Female,35,19,99

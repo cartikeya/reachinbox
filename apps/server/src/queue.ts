@@ -33,23 +33,26 @@ async function reserveSendSlot(senderEmail: string, hourlyLimit: number, minDela
   return { allowed: Number(result[0]) === 1, sendAt: Number(result[1]), reason: result[2], window: new Date(windowStart).toISOString() };
 }
 
-export async function scheduleEmailJob(email: EmailRecord, attempt = email.attemptCount) {
+export async function scheduleEmailJob(email: EmailRecord, attempt = email.attemptCount, reservedAt?: number) {
   const delay = Math.max(0, new Date(email.scheduledAt).getTime() - Date.now());
-  await emailQueue.add('send-email', { emailId: email.id }, { jobId: `email:${email.id}:${attempt}`, delay });
+  await emailQueue.add('send-email', { emailId: email.id, ...(reservedAt ? { reservedAt } : {}) }, { jobId: `email:${email.id}:${attempt}`, delay });
 }
 
-async function processEmail(emailId: string) {
+async function processEmail(emailId: string, reservedAt?: number) {
   const current = await getEmail(emailId);
   if (!current || current.status !== 'scheduled') return;
   const email = await claimEmail(emailId);
   if (!email) return;
   try {
-    const reservation = await reserveSendSlot(email.senderEmail, email.hourlyLimit || config.maxEmailsPerHour, Math.max(email.delayBetweenMs, config.minSendDelayMs));
+    const reservation = reservedAt
+      ? { allowed: true, sendAt: reservedAt, reason: 'reserved', window: '' }
+      : await reserveSendSlot(email.senderEmail, email.hourlyLimit || config.maxEmailsPerHour, Math.max(email.delayBetweenMs, config.minSendDelayMs));
     if (!reservation.allowed || reservation.sendAt > Date.now() + 50) {
       const nextAt = new Date(Math.max(reservation.sendAt, Date.now() + 250));
-      const deferred = await deferEmail(email.id, nextAt, reservation.window);
+      const deferred = await deferEmail(email.id, nextAt, reservation.window || undefined);
       if (deferred) {
-        await scheduleEmailJob(deferred, deferred.attemptCount);
+        const nextReservedAt = reservation.allowed ? reservation.sendAt : undefined;
+        await scheduleEmailJob(deferred, deferred.attemptCount, nextReservedAt);
         if (reservation.reason === 'hourly') {
           await notifyRateLimitHit({ userId: email.userId, senderEmail: email.senderEmail, window: reservation.window, redis });
         }
@@ -69,7 +72,7 @@ async function processEmail(emailId: string) {
 
 let worker: Worker | null = null;
 export function startWorker() {
-  worker = new Worker('email-delivery', async (job) => processEmail(job.data.emailId as string), { connection: workerRedis, concurrency: config.workerConcurrency });
+  worker = new Worker('email-delivery', async (job) => processEmail(job.data.emailId as string, typeof job.data.reservedAt === 'number' ? job.data.reservedAt : undefined), { connection: workerRedis, concurrency: config.workerConcurrency });
   worker.on('completed', (job) => console.log(`Delivered job ${job.id}`));
   worker.on('failed', (job, error) => console.error(`Queue job ${job?.id ?? 'unknown'} failed:`, error.message));
   return worker;
