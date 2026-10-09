@@ -1,0 +1,1 @@
+The runnable entrypoint is implemented in index.ts; this placeholder is kept only to make the source folder discoverable before the first build.
